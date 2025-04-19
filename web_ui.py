@@ -10,12 +10,55 @@ from typing import Iterator, Dict, Any, Optional, List
 import gradio as gr
 from dotenv import load_dotenv
 
-# Updated import for AdkApp
-from google.adk.runtime.app import AdkApp
-# Alternative imports if needed: 
-# from google.adk.app import AdkApp
-# from google.adk import AdkApp
-
+# Import the required components from Google ADK
+try:
+    from google.adk.agents import Agent
+    from google.adk.tools import FunctionTool
+    from google.adk.runners import Runner
+    from google.adk.sessions import InMemorySessionService
+    from google.genai import types
+    
+    # Flag to indicate if imports are successful
+    ADK_IMPORTS_SUCCESS = True
+except ImportError:
+    print("Warning: Could not import Google ADK components. Using mock implementations.")
+    ADK_IMPORTS_SUCCESS = False
+    
+    # Mock implementation
+    class Agent:
+        def __init__(self, model=None, name=None, instruction=None, tools=None):
+            self.model = model
+            self.name = name
+            self.instruction = instruction
+            self.tools = tools or []
+    
+    class FunctionTool:
+        def __init__(self, func=None):
+            self.func = func
+            
+    class Runner:
+        def __init__(self, agent=None, app_name=None, session_service=None):
+            self.agent = agent
+            self.app_name = app_name
+            self.session_service = session_service
+            
+        def run(self, user_id=None, session_id=None, new_message=None):
+            yield {"content": {"parts": [{"text": f"Processing: {new_message.parts[0].text}"}]}}
+            yield {"content": {"parts": [{"text": "Mock response completed."}]}}
+    
+    class InMemorySessionService:
+        def create_session(self, app_name=None, user_id=None, session_id=None):
+            return {"id": session_id}
+            
+    class types:
+        class Content:
+            def __init__(self, role=None, parts=None):
+                self.role = role
+                self.parts = parts
+                
+        class Part:
+            def __init__(self, text=None):
+                self.text = text
 from agents.coordinator import coordinator_agent
 from config import get_config, load_config_from_file
 
@@ -52,8 +95,24 @@ def generate_research_paper(topic: str,
     # Full path to output file
     output_path = output_dir / output_filename
     
-    # Initialize the app
-    app = AdkApp(agent=coordinator_agent)
+    # Constants
+    APP_NAME = "ai_research_agent"
+    MODEL_ID = "gemini-2.0-flash"  # Or appropriate model ID
+    USER_ID = "WEB_UI_USER"
+    SESSION_ID = str(int(time.time()))  # Use timestamp as session ID
+    
+    # Initialize session and runner - using coordinator directly
+    session_service = InMemorySessionService()
+    session = session_service.create_session(
+        app_name=APP_NAME, 
+        user_id=USER_ID, 
+        session_id=SESSION_ID
+    )
+    runner = Runner(
+        agent=coordinator_agent,  # Use coordinator_agent directly 
+        app_name=APP_NAME, 
+        session_service=session_service
+    )
     
     # Update status
     if status_callback:
@@ -61,9 +120,17 @@ def generate_research_paper(topic: str,
     
     # Stream output
     try:
-        for event in app.stream_query(
-            user_id="WEB_UI_USER", 
-            message=f"{topic} Output filename: {output_filename}"
+        # Create content for the agent
+        content = types.Content(
+            role='user', 
+            parts=[types.Part(text=f"{topic} Output filename: {output_filename}")]
+        )
+        
+        # Run the agent
+        for event in runner.run(
+            user_id=USER_ID, 
+            session_id=SESSION_ID, 
+            new_message=content
         ):
             if event.content and event.content.parts:
                 first_part = event.content.parts[0]
@@ -92,7 +159,46 @@ def generate_research_paper(topic: str,
 
 def worker_thread(topic: str, output_filename: str):
     """Background worker thread to process research paper generation."""
+    # Track stages for progress indication
+    stages = [
+        "Initializing research agent", 
+        "Creating outline", 
+        "Gathering literature", 
+        "Drafting content",
+        "Adding citations",
+        "Formatting document",
+        "Generating PDF"
+    ]
+    total_stages = len(stages)
+    current_stage = 0
+    
+    # Initial progress update
+    message_queue.put({
+        "message": f"Starting research on: {topic}",
+        "progress": current_stage / total_stages,
+        "stage": stages[current_stage]
+    })
+    
+    # Process paper generation with stage tracking
     for update in generate_research_paper(topic, output_filename):
+        # Update progress based on content
+        if "message" in update:
+            message = update["message"]
+            # Detect stage transitions from message content
+            for i, stage in enumerate(stages):
+                if any(keyword in message.lower() for keyword in stage.lower().split()):
+                    current_stage = max(current_stage, i)  # Only advance forward
+                    break
+        
+        # Add progress information
+        update["progress"] = min(current_stage / total_stages, 0.95)  # Cap at 95% until completion
+        update["stage"] = stages[current_stage]
+        
+        # If complete, set to 100%
+        if update.get("complete", False):
+            update["progress"] = 1.0
+            update["stage"] = "Complete"
+            
         message_queue.put(update)
     
     # Signal completion
@@ -126,7 +232,9 @@ def create_ui() -> gr.Blocks:
         
         # Output area
         output_area = gr.Markdown("Results will appear here")
-        status_box = gr.Textbox(label="Status", lines=10, max_lines=15)
+        status_heading = gr.Markdown("### Current Status")
+        status_box = gr.Textbox(label="Status Updates", lines=10, max_lines=15)
+        progress = gr.Progress(show_label=True, elem_id="progress_bar")
         file_output = gr.File(label="Generated PDF")
         
         # State variables
@@ -140,8 +248,8 @@ def create_ui() -> gr.Blocks:
                     output_area: "Generation already in progress. Please wait or cancel.",
                     status_box: "Generation already in progress.",
                     is_generating: True,
-                    submit_button: gr.Button.update(interactive=False),
-                    cancel_button: gr.Button.update(visible=True)
+                    submit_button: gr.update(interactive=False),
+                    cancel_button: gr.update(visible=True)
                 }
             
             if not topic.strip():
@@ -166,8 +274,8 @@ def create_ui() -> gr.Blocks:
             return {
                 is_generating: True,
                 thread_ref: thread,
-                submit_button: gr.Button.update(interactive=False),
-                cancel_button: gr.Button.update(visible=True)
+                submit_button: gr.update(interactive=False),
+                cancel_button: gr.update(visible=True)
             }
         
         def check_progress(state, thread):
@@ -177,6 +285,8 @@ def create_ui() -> gr.Blocks:
             
             updates = {}
             new_messages = []
+            current_stage = ""
+            progress_value = 0.0
             
             # Process all available messages
             try:
@@ -186,30 +296,44 @@ def create_ui() -> gr.Blocks:
                         updates = {
                             is_generating: False,
                             thread_ref: None,
-                            submit_button: gr.Button.update(interactive=True),
-                            cancel_button: gr.Button.update(visible=False)
+                            submit_button: gr.update(interactive=True),
+                            cancel_button: gr.update(visible=False),
+                            status_heading: "### Complete"
                         }
                         break
                     
-                    new_messages.append(msg["message"])
+                    # Extract message text
+                    if "message" in msg:
+                        new_messages.append(msg["message"])
                     
+                    # Update stage and progress information
+                    if "stage" in msg:
+                        current_stage = msg["stage"]
+                    if "progress" in msg:
+                        progress_value = msg["progress"]
+                    
+                    # Update UI based on completion status
                     if msg.get("complete", False):
                         if not msg.get("error", False) and "file_path" in msg:
                             updates = {
                                 file_output: msg["file_path"],
-                                output_area: f"✅ **Generation Complete!**\n\n{msg['message']}",
+                                output_area: f"✅ **Generation Complete!**\n\n{msg.get('message', '')}",
                                 is_generating: False,
                                 thread_ref: None,
-                                submit_button: gr.Button.update(interactive=True),
-                                cancel_button: gr.Button.update(visible=False)
+                                submit_button: gr.update(interactive=True),
+                                cancel_button: gr.update(visible=False),
+                                status_heading: "### Complete!",
+                                progress: 1.0
                             }
                         else:
                             updates = {
-                                output_area: f"❌ **Error**\n\n{msg['message']}",
+                                output_area: f"❌ **Error**\n\n{msg.get('message', '')}",
                                 is_generating: False,
                                 thread_ref: None,
-                                submit_button: gr.Button.update(interactive=True),
-                                cancel_button: gr.Button.update(visible=False)
+                                submit_button: gr.update(interactive=True),
+                                cancel_button: gr.update(visible=False),
+                                status_heading: "### Error Occurred",
+                                progress: 1.0
                             }
             except queue.Empty:
                 pass
@@ -221,6 +345,13 @@ def create_ui() -> gr.Blocks:
                 else:
                     status_box.value = "\n".join(new_messages)
                 updates["status_box"] = status_box.value
+                
+            # Update progress information if we received any
+            if current_stage and "status_heading" not in updates:
+                updates["status_heading"] = f"### {current_stage}"
+            
+            if progress_value > 0 and "progress" not in updates:
+                updates["progress"] = progress_value
             
             return updates
         
@@ -232,8 +363,8 @@ def create_ui() -> gr.Blocks:
                     output_area: "Generation cancelled by user.",
                     is_generating: False,
                     thread_ref: None,
-                    submit_button: gr.Button.update(interactive=True),
-                    cancel_button: gr.Button.update(visible=False)
+                    submit_button: gr.update(interactive=True),
+                    cancel_button: gr.update(visible=False)
                 }
             return {}
         
@@ -250,19 +381,20 @@ def create_ui() -> gr.Blocks:
             outputs=[output_area, is_generating, thread_ref, submit_button, cancel_button]
         )
         
-        # Check for updates every second
-        ui.load(
-            fn=lambda: None, 
-            inputs=None, 
-            outputs=None,
-            every=1
-        )
-        
-        check_progress_event = ui.every(
+        # Add automatic polling for status updates - interval reduced for stability
+        gr.on(
+            triggers=[gr.Trigger(every=2)],  # Check every 2 seconds (more stable)
             fn=check_progress,
             inputs=[is_generating, thread_ref],
-            outputs=[status_box, output_area, file_output, is_generating, thread_ref, submit_button, cancel_button],
-            interval=1.0,
+            outputs=[status_box, output_area, file_output, is_generating, thread_ref, submit_button, cancel_button, status_heading, progress]
+        )
+        
+        # Keep the manual refresh button as a backup
+        refresh_button = gr.Button("Refresh Status", variant="secondary")
+        refresh_button.click(
+            fn=check_progress,
+            inputs=[is_generating, thread_ref],
+            outputs=[status_box, output_area, file_output, is_generating, thread_ref, submit_button, cancel_button, status_heading, progress]
         )
 
     return ui
