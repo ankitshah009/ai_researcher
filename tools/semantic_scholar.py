@@ -1,7 +1,7 @@
 """Custom ADK tool: search Semantic Scholar and return structured metadata."""
 from typing import List, Dict
 import semanticscholar as sch
-from google.adk.tools import tool
+from google.adk.tools.reasoning_engine import tool
 
 @tool(name="search_semantic", description="Search Semantic Scholar for papers related to a query")
 def search_semantic(query: str, max_results: int = 10) -> List[Dict]:
