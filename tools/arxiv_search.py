@@ -1,7 +1,7 @@
 """Custom ADK tool: search arXiv and return structured metadata."""
 from typing import List, Dict
 import arxiv
-from google.adk.tools import tool
+from google.adk import tool
 
 @tool(name="search_arxiv", description="Search arXiv for papers related to a query")
 def search_arxiv(query: str, max_results: int = 10) -> List[Dict]:
