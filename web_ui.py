@@ -9,7 +9,12 @@ from typing import Iterator, Dict, Any, Optional, List
 
 import gradio as gr
 from dotenv import load_dotenv
-from vertexai.preview.reasoning_engines import AdkApp
+
+# Updated import for AdkApp
+from google.cloud.aiplatform.preview.reasoning_engines import AdkApp
+# Alternative import if needed: 
+# import vertexai
+# from vertexai.preview.reasoning_engines import AdkApp
 
 from agents.coordinator import coordinator_agent
 from config import get_config, load_config_from_file

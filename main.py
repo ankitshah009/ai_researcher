@@ -5,7 +5,13 @@ import sys
 import time
 from pathlib import Path
 from dotenv import load_dotenv
-from vertexai.preview.reasoning_engines import AdkApp
+
+# Updated import for AdkApp
+from google.cloud.aiplatform.preview.reasoning_engines import AdkApp
+# Alternative import if needed: 
+# import vertexai
+# from vertexai.preview.reasoning_engines import AdkApp
+
 from agents.coordinator import coordinator_agent
 from callbacks.logging_callback import ResearchAgentCallbackHandler
 
