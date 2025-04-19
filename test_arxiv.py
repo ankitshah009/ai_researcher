@@ -1,17 +1,32 @@
 #!/usr/bin/env python3
-"""Simple test for the arXiv search tool."""
+"""Simple test for the arXiv search functionality."""
 import os
 import sys
 import json
-from tools.arxiv_search import search_arxiv
+import arxiv
+
+def search_arxiv_direct(query: str, max_results: int = 10):
+    """Search arXiv directly without using the ADK tool."""
+    print(f"Searching arXiv for: {query}")
+    search = arxiv.Search(query=query, max_results=max_results)
+    out = []
+    for result in search.results():
+        out.append({
+            "title": result.title,
+            "url": result.pdf_url,
+            "summary": result.summary[:200] + "..." if len(result.summary) > 200 else result.summary,
+            "authors": [a.name for a in result.authors],
+            "published": result.published.strftime("%Y-%m-%d"),
+        })
+    return out
 
 def main():
-    """Test the arXiv search tool with a simple query."""
-    print("Testing arXiv search...")
+    """Test the arXiv search with a simple query."""
+    print("Testing arXiv search functionality...")
     
     try:
         # Run a simple search
-        results = search_arxiv("Transfer learning in computer vision", max_results=3)
+        results = search_arxiv_direct("Transfer learning in computer vision", max_results=3)
         
         # Display the results
         print(f"Found {len(results)} papers:")
