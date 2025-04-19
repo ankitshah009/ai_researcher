@@ -381,12 +381,12 @@ def create_ui() -> gr.Blocks:
             outputs=[output_area, is_generating, thread_ref, submit_button, cancel_button]
         )
         
-        # Add automatic polling for status updates - interval reduced for stability
-        gr.on(
-            triggers=[gr.Trigger(every=2)],  # Check every 2 seconds (more stable)
+        # Use the older every() pattern for polling updates
+        check_progress_event = ui.every(
             fn=check_progress,
             inputs=[is_generating, thread_ref],
-            outputs=[status_box, output_area, file_output, is_generating, thread_ref, submit_button, cancel_button, status_heading, progress]
+            outputs=[status_box, output_area, file_output, is_generating, thread_ref, submit_button, cancel_button, status_heading, progress],
+            interval=2.0,  # Check every 2 seconds
         )
         
         # Keep the manual refresh button as a backup
