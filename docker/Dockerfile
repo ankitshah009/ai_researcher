@@ -1,15 +1,5 @@
 FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on
-
-# Create a non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-
 WORKDIR /app
 
 # Install system dependencies
@@ -24,6 +14,9 @@ RUN apt-get update && \
     git && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Copy requirements file and install Python dependencies
 COPY requirements.txt .

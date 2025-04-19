@@ -14,10 +14,10 @@ echo -e "\n${GREEN}Step 1:${NC} Building Docker image..."
 docker build -t ai-research-agent -f docker/Dockerfile .
 
 echo -e "\n${GREEN}Step 2:${NC} Verifying Python dependencies..."
-docker run --rm ai-research-agent pip list
+docker run --rm ai-research-agent -c "import pkg_resources; print('Installed packages:'); [print(f'{pkg.key}=={pkg.version}') for pkg in sorted(pkg_resources.working_set, key=lambda x: x.key.lower())]"
 
 echo -e "\n${GREEN}Step 3:${NC} Testing arXiv search tool..."
-docker run --rm ai-research-agent python test_arxiv.py
+docker run --rm ai-research-agent test_arxiv.py
 
 echo -e "\n${GREEN}Step 4:${NC} Testing with web UI..."
 echo -e "${YELLOW}This will start the web UI. Access at http://localhost:7860${NC}"
@@ -37,6 +37,6 @@ docker run --rm -it \
   -p 7860:7860 \
   -v "$(pwd)/.env:/app/.env:ro" \
   -v "$(pwd)/outputs:/app/outputs" \
-  ai-research-agent python web_ui.py --host 0.0.0.0
+  ai-research-agent web_ui.py --host 0.0.0.0
 
 echo -e "\n${GREEN}All tests completed!${NC}" 
