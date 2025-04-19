@@ -172,9 +172,40 @@ python main.py --topic "Your Topic"
 
 ### Docker Deployment
 
+#### Quick Start
+
+The easiest way to run the AI Research Agent is using Docker with our helper scripts:
+
 ```bash
-docker build -t ai-research-agent .
-docker run -e GOOGLE_API_KEY=your_api_key_here ai-research-agent --topic "Your Topic"
+# Run the Web UI
+./run_web_ui.sh
+
+# Run tests and validation
+./docker_test.sh
+```
+
+#### Manual Docker Commands
+
+Build the Docker image:
+```bash
+docker build -t ai-research-agent -f docker/Dockerfile .
+```
+
+Run the agent with CLI:
+```bash
+docker run --rm -it \
+  -v "$(pwd)/.env:/app/.env:ro" \
+  -v "$(pwd)/outputs:/app/outputs" \
+  ai-research-agent main.py --topic "Your Research Topic"
+```
+
+Run the web UI:
+```bash
+docker run --rm -it \
+  -p 7860:7860 \
+  -v "$(pwd)/.env:/app/.env:ro" \
+  -v "$(pwd)/outputs:/app/outputs" \
+  ai-research-agent web_ui.py --host 0.0.0.0
 ```
 
 ### Cloud Deployment
