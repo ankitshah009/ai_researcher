@@ -11,10 +11,10 @@ import gradio as gr
 from dotenv import load_dotenv
 
 # Updated import for AdkApp
-from google.cloud.aiplatform.preview.reasoning_engines import AdkApp
-# Alternative import if needed: 
-# import vertexai
-# from vertexai.preview.reasoning_engines import AdkApp
+from google.adk.runtime.app import AdkApp
+# Alternative imports if needed: 
+# from google.adk.app import AdkApp
+# from google.adk import AdkApp
 
 from agents.coordinator import coordinator_agent
 from config import get_config, load_config_from_file
