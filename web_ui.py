@@ -175,7 +175,6 @@ def worker_thread(topic: str, output_filename: str):
     # Initial progress update
     message_queue.put({
         "message": f"Starting research on: {topic}",
-        "progress": current_stage / total_stages,
         "stage": stages[current_stage]
     })
     
@@ -190,13 +189,11 @@ def worker_thread(topic: str, output_filename: str):
                     current_stage = max(current_stage, i)  # Only advance forward
                     break
         
-        # Add progress information
-        update["progress"] = min(current_stage / total_stages, 0.95)  # Cap at 95% until completion
+        # Add stage information
         update["stage"] = stages[current_stage]
         
-        # If complete, set to 100%
+        # If complete, set final stage
         if update.get("complete", False):
-            update["progress"] = 1.0
             update["stage"] = "Complete"
             
         message_queue.put(update)
@@ -234,7 +231,6 @@ def create_ui() -> gr.Blocks:
         output_area = gr.Markdown("Results will appear here")
         status_heading = gr.Markdown("### Current Status")
         status_box = gr.Textbox(label="Status Updates", lines=10, max_lines=15)
-        progress = gr.Progress()  # Simplest form with no arguments
         file_output = gr.File(label="Generated PDF")
         
         # State variables
@@ -286,7 +282,6 @@ def create_ui() -> gr.Blocks:
             updates = {}
             new_messages = []
             current_stage = ""
-            progress_value = 0.0
             
             # Process all available messages
             try:
@@ -309,8 +304,6 @@ def create_ui() -> gr.Blocks:
                     # Update stage and progress information
                     if "stage" in msg:
                         current_stage = msg["stage"]
-                    if "progress" in msg:
-                        progress_value = msg["progress"]
                     
                     # Update UI based on completion status
                     if msg.get("complete", False):
@@ -322,8 +315,7 @@ def create_ui() -> gr.Blocks:
                                 thread_ref: None,
                                 submit_button: gr.update(interactive=True),
                                 cancel_button: gr.update(visible=False),
-                                status_heading: "### Complete!",
-                                progress: 1.0
+                                status_heading: "### Complete!"
                             }
                         else:
                             updates = {
@@ -332,8 +324,7 @@ def create_ui() -> gr.Blocks:
                                 thread_ref: None,
                                 submit_button: gr.update(interactive=True),
                                 cancel_button: gr.update(visible=False),
-                                status_heading: "### Error Occurred",
-                                progress: 1.0
+                                status_heading: "### Error Occurred"
                             }
             except queue.Empty:
                 pass
@@ -349,9 +340,6 @@ def create_ui() -> gr.Blocks:
             # Update progress information if we received any
             if current_stage and "status_heading" not in updates:
                 updates["status_heading"] = f"### {current_stage}"
-            
-            if progress_value > 0 and "progress" not in updates:
-                updates["progress"] = progress_value
             
             return updates
         
@@ -386,7 +374,7 @@ def create_ui() -> gr.Blocks:
         refresh_button.click(
             fn=check_progress,
             inputs=[is_generating, thread_ref],
-            outputs=[status_box, output_area, file_output, is_generating, thread_ref, submit_button, cancel_button, status_heading, progress]
+            outputs=[status_box, output_area, file_output, is_generating, thread_ref, submit_button, cancel_button, status_heading]
         )
 
     return ui
