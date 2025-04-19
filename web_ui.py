@@ -234,7 +234,7 @@ def create_ui() -> gr.Blocks:
         output_area = gr.Markdown("Results will appear here")
         status_heading = gr.Markdown("### Current Status")
         status_box = gr.Textbox(label="Status Updates", lines=10, max_lines=15)
-        progress = gr.Progress(show_label=True, elem_id="progress_bar")
+        progress = gr.Progress()  # Simplest form with no arguments
         file_output = gr.File(label="Generated PDF")
         
         # State variables
