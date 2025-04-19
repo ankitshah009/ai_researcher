@@ -1,0 +1,1 @@
+"""Agent definitions for the AI Research Scientist Agent""" 
