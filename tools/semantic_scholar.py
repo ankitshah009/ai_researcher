@@ -3,8 +3,7 @@ from typing import List, Dict
 import semanticscholar as sch
 from google.adk.tools import FunctionTool
 
-@FunctionTool(name="search_semantic", description="Search Semantic Scholar for papers related to a query")
-def search_semantic(query: str, max_results: int = 10) -> List[Dict]:
+def search_semantic_func(query: str, max_results: int = 10) -> List[Dict]:
     """Search Semantic Scholar for papers related to a query."""
     client = sch.SemanticScholar()
     results = client.search_paper(query, limit=max_results)
@@ -25,3 +24,10 @@ def search_semantic(query: str, max_results: int = 10) -> List[Dict]:
         })
     
     return out 
+
+# Create the FunctionTool instance
+search_semantic = FunctionTool(
+    func=search_semantic_func,
+    # name="search_semantic", 
+    # description="Search Semantic Scholar for papers related to a query"
+) 

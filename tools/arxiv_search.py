@@ -3,8 +3,7 @@ from typing import List, Dict
 import arxiv
 from google.adk.tools import FunctionTool
 
-@FunctionTool(name="search_arxiv", description="Search arXiv for papers related to a query")
-def search_arxiv(query: str, max_results: int = 10) -> List[Dict]:
+def search_arxiv_func(query: str, max_results: int = 10) -> List[Dict]:
     """Search arXiv for papers related to a query.
     
     Args:
@@ -26,5 +25,9 @@ def search_arxiv(query: str, max_results: int = 10) -> List[Dict]:
         })
     return out
 
-# Create the FunctionTool from the function
-arxiv_search_tool = FunctionTool(func=search_arxiv)
+# Create the FunctionTool instance
+search_arxiv = FunctionTool(
+    func=search_arxiv_func,
+    # name="search_arxiv",  # Name/description might be inferred or set differently
+    # description="Search arXiv for papers related to a query"
+)
