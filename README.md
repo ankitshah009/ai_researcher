@@ -1,6 +1,17 @@
-# AI Research Scientist Agent (Google ADK)
+# AI Research Agent 🚀
 
-An end-to-end code-base that transforms a single-line research topic into a full, citation-rich research paper using the Google Agent Development Kit (ADK) and Vertex AI.
+An end-to-end system that transforms a single-line research topic into a full, citation-rich research paper using the Google Agent Development Kit (ADK) and Vertex AI.
+
+## Overview
+
+This project provides:
+
+1. **Multi-Agent Research System**: Specialized agents that collaborate to create comprehensive research papers.
+
+2. **Modern Web Application**:
+   - **Flask REST API Backend**: Handles the paper generation process, communicates with Google's ADK, and manages the research job lifecycle.
+   - **React Frontend**: A sleek, intuitive UI for submitting research topics, tracking progress, and downloading generated papers.
+   - **Gradio UI**: Alternative simple web interface (Legacy)
 
 ## Features
 
@@ -9,7 +20,8 @@ An end-to-end code-base that transforms a single-line research topic into a full
 - 📝 **Structured drafting** - Section-by-section creation of professional academic content
 - 🔍 **Citation management** - Generation of properly formatted citations in IEEE format
 - 📊 **PDF generation** - Conversion of content to professional-looking PDFs using LaTeX templates
-- 🖥️ **Web interface** - Easy-to-use Gradio UI for interactive paper generation
+- 🖥️ **Modern React UI** - Beautiful, responsive web interface with real-time progress tracking
+- 📱 **RESTful API** - Flexible backend system for integration with other applications
 - ⚙️ **Configurable** - Flexible configuration system for customizing the paper generation process
 
 ## Project Layout
@@ -20,9 +32,10 @@ ai_research_agent/
 ├── requirements.txt
 ├── config.py               # Central configuration system
 ├── main.py                 # CLI entry point
-├── web_ui.py               # Gradio web interface
-├── test_agent.py           # Script for testing the agent
-├── run_tests.py            # Test runner for unit tests
+├── api.py                  # Flask API backend
+├── web_ui.py               # Gradio web interface (Legacy)
+├── run_app.sh              # Script to run Flask+React app
+├── docker-compose.yml      # Docker deployment for entire stack
 ├── agents/
 │   ├── __init__.py
 │   ├── coordinator.py      # Orchestrates the research workflow
@@ -37,86 +50,76 @@ ai_research_agent/
 │   ├── semantic_scholar.py # Search Semantic Scholar
 │   ├── pdf_export.py       # Convert to PDF
 │   └── template_utils.py   # LaTeX template utilities
-├── templates/
-│   └── paper_template.tex  # LaTeX template for papers
-├── callbacks/
-│   └── logging_callback.py # Track agent progress
-├── tests/
-│   ├── __init__.py
-│   └── test_tools.py       # Unit tests for tools
-├── evaluation/
-│   └── eval_suite.py       # Quality metrics
+├── frontend/               # React frontend
+│   ├── public/             # Static assets
+│   ├── src/                # React components
+│   │   ├── components/     # Reusable UI components
+│   │   ├── hooks/          # Custom React hooks
+│   │   ├── pages/          # Page components
+│   │   └── styles/         # CSS and styling
+│   └── Dockerfile          # Frontend container build
 └── docker/
-    └── Dockerfile          # Container deployment
+    └── Dockerfile          # Backend container build
 ```
 
-## Setup and Installation
+## Prerequisites
 
-### Prerequisites
+- Python 3.8+
+- Node.js 14+ (for React frontend)
+- Google ADK (follow Google's setup instructions)
+- An API key for Google Gemini models
 
-- Python 3.9+
-- [Google API Key](https://ai.google.dev/) for Gemini models access
+## Setup
 
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/ai_research_agent.git
-   cd ai_research_agent
-   ```
-
-2. Create a virtual environment and install dependencies:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate   # On Windows: .venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-
-3. Create a `.env` file with your Google API key:
-   ```bash
-   echo "GOOGLE_API_KEY=your_api_key_here" > .env
-   ```
-
-## Usage
-
-### Command Line Interface
-
-Generate a research paper from the command line:
-
+1. Clone this repository
 ```bash
-python main.py --topic "Graph Neural Networks for Protein Folding"
+git clone https://github.com/yourusername/ai-research-agent.git
+cd ai-research-agent
 ```
 
-Additional options:
+2. Set up your API key
 ```bash
-python main.py --topic "Your Research Topic" --output "custom_filename.pdf" --verbose
+echo "GOOGLE_API_KEY=your_api_key_here" > .env
 ```
 
-### Web Interface
+3. Choose how to run:
 
-Launch the web UI for a user-friendly interface:
-
+### Option 1: Run with React + Flask (Recommended)
 ```bash
+./run_app.sh
+```
+
+This script will:
+- Create a Python virtual environment
+- Install backend dependencies
+- Install frontend dependencies
+- Start both the backend API and frontend development server
+
+Once running, you can access:
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend API: [http://localhost:5000](http://localhost:5000)
+
+### Option 2: Run with Gradio UI (Legacy)
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -r requirements.txt
 python web_ui.py
 ```
 
-This starts a Gradio web interface at http://127.0.0.1:7860 where you can:
-- Enter your research topic
-- Monitor progress in real-time
-- Download the generated PDF
+This starts a Gradio web interface at [http://127.0.0.1:7860](http://127.0.0.1:7860).
 
-### Testing
-
-Run the test suite to verify everything is working:
-
+### Option 3: Run with CLI
 ```bash
-python run_tests.py
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python main.py --topic "Graph Neural Networks for Protein Folding"
 ```
 
-Test with a sample topic:
-
+### Option 4: Run with Docker Compose
 ```bash
-python test_agent.py --topic "Reinforcement Learning for Autonomous Vehicles"
+docker-compose up -d
 ```
 
 ## How It Works
@@ -132,99 +135,40 @@ python test_agent.py --topic "Reinforcement Learning for Autonomous Vehicles"
 
 3. **Custom tools** - External API integration with arXiv and Semantic Scholar provides access to real research papers.
 
-4. **Templating system** - LaTeX templates ensure professional formatting with fallback to ReportLab for environments without LaTeX.
+4. **Web interfaces** - Both React and Gradio UIs provide access to the same underlying functionality.
 
-5. **Configuration** - Centralized configuration in `config.py` allows customization of models, output formats, and agent behavior.
+## Testing
 
-## Customization
+### Testing the arXiv Integration
 
-You can create a `config.json` file to override default settings:
+You can test the arXiv search functionality by:
+1. Opening [http://localhost:3000/test](http://localhost:3000/test)
+2. Entering a search query
+3. Viewing the results
 
-```json
-{
-  "models": {
-    "coordinator": "gemini-2.5-pro"
-  },
-  "paper": {
-    "citation_style": "APA"
-  }
-}
-```
+### Testing the API Directly
 
-Or modify programmatically:
+You can also test the API endpoints directly:
 
-```python
-from config import update_config
-update_config({"output": {"default_pdf_name": "my_paper.pdf"}})
-```
-
-## Deployment Options
-
-### Local Development
-
+- Health check:
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-export GOOGLE_API_KEY=your_api_key_here
-python main.py --topic "Your Topic"
+curl http://localhost:5000/api/health
 ```
 
-### Docker Deployment
-
-#### Quick Start
-
-The easiest way to run the AI Research Agent is using Docker with our helper scripts:
-
+- Start a research job:
 ```bash
-# Run the Web UI
-./run_web_ui.sh
-
-# Run tests and validation
-./docker_test.sh
+curl -X POST http://localhost:5000/api/start -H "Content-Type: application/json" -d '{"topic":"Impact of quantum computing on cryptography"}'
 ```
 
-#### Manual Docker Commands
-
-Build the Docker image:
+### Run the test suite
 ```bash
-docker build -t ai-research-agent -f docker/Dockerfile .
+python -m pytest
 ```
 
-Run the agent with CLI:
-```bash
-docker run --rm -it \
-  -v "$(pwd)/.env:/app/.env:ro" \
-  -v "$(pwd)/outputs:/app/outputs" \
-  ai-research-agent main.py --topic "Your Research Topic"
-```
+## Contributing
 
-Run the web UI:
-```bash
-docker run --rm -it \
-  -p 7860:7860 \
-  -v "$(pwd)/.env:/app/.env:ro" \
-  -v "$(pwd)/outputs:/app/outputs" \
-  ai-research-agent web_ui.py --host 0.0.0.0
-```
-
-### Cloud Deployment
-
-Enable Vertex AI and Agent Engine APIs in your GCP project:
-
-```bash
-gcloud beta agentlifecycle deploy --image=gcr.io/your-project/ai-research-agent --project=$PROJECT_ID
-```
-
-## Next Steps
-
-- Swap Gemini for Gemma or Llama-3 by changing the `model` field in config
-- Add a plagiarism-checker tool during drafting
-- Fine-tune templates for specific conference formats (e.g., ICML, NeurIPS)
-- Implement citation style switching (IEEE, APA, MLA)
+Contributions are welcome! Feel free to open issues or submit pull requests.
 
 ## License
 
-MIT
-
-✨ Happy researching! 
+MIT License 

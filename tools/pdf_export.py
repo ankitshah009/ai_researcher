@@ -5,11 +5,12 @@ import shutil
 import subprocess
 from pathlib import Path
 from typing import Dict, Any, Optional
-from google.adk.tools import tool
+from google.adk.tools import FunctionTool
 
 from tools.template_utils import render_template
 
-@tool(name="tex_to_pdf", description="Convert LaTeX content to PDF and return the file URL")
+# Using FunctionTool instead of decorator
+# Original: @tool(name="tex_to_pdf", description="Convert LaTeX content to PDF and return the file URL")
 def tex_to_pdf(latex_content: str, output_filename: str = "research_paper.pdf") -> str:
     """
     Converts LaTeX content to PDF using pdflatex.
@@ -67,7 +68,8 @@ def tex_to_pdf(latex_content: str, output_filename: str = "research_paper.pdf") 
             
             return str(output_path.absolute())
 
-@tool(name="paper_to_pdf", description="Convert structured paper content to PDF using template")
+# Using FunctionTool instead of decorator
+# Original: @tool(name="paper_to_pdf", description="Convert structured paper content to PDF using template")
 def paper_to_pdf(
     paper_content: Dict[str, Any],
     template_name: str = "paper_template.tex",

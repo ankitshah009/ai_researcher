@@ -2,14 +2,16 @@
 google-adk==0.2.0
 
 # Google Cloud client libraries
-google-cloud-aiplatform>=1.87.0  # Includes vertexai.preview namespace
-google-genai==0.2.2  # For Gemini models
+google-cloud-aiplatform[agent_engines,adk,langchain,ag2,llama_index]>=1.88.0  # Includes vertexai.preview namespace
+google-genai>=1.9.0  # For Gemini models
 google-auth==2.28.0
 google-api-core==2.17.0
 google-api-python-client>=2.157.0
+google-cloud-storage
+vertexai
 
 # Research tooling
-arxiv==2.1.3
+arxiv>2.1.3
 semanticscholar==0.6.0
 feedparser==6.0.11
 
@@ -20,7 +22,7 @@ reportlab==4.1.0
 pillow==10.2.0
 
 # Web UI
-gradio==4.19.1
+gradio>5.23.1
 ffmpeg-python==0.2.0
 pydub==0.25.1
 
@@ -32,10 +34,22 @@ pytest-mock==3.12.0
 python-dotenv==1.0.1
 tqdm==4.66.2
 colorama==0.4.6
-requests==2.31.0
+requests>2.32.0
 urllib3==2.0.7
 aiohttp==3.9.5
 
 # Runtime
-typing-extensions==4.9.0
-pydantic==2.5.0 
+typing-extensions>=4.11.0
+pydantic>=2.7.2
+
+# Flask
+flask==2.3.3
+flask-cors==4.0.0
+gunicorn==21.2.0
+
+# Asyncio
+asyncio==3.4.3
+
+# PDFLaTeX
+pylatex==1.4.2
+pdflatex==0.1.3 
