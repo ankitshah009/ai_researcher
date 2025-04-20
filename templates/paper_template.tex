@@ -53,12 +53,28 @@
 \section{Discussion}
 {{discussion}}
 
+\section{Limitations} % Added Limitations section
+{{limitations if limitations else ''}}
+
+\section{Future Work} % Added Future Work section
+{{future_work if future_work else ''}}
+
 \section{Conclusion}
 {{conclusion}}
+
+\section*{Acknowledgment} % Added Acknowledgment section
+{{acknowledgment if acknowledgment else ''}}
 
 \bibliographystyle{IEEEtran}
 \begin{thebibliography}{00}
 {{references}}
 \end{thebibliography}
 
-\end{document} 
+% Optional Appendix
+{% if appendix %}
+\appendices
+\section{Appendix}
+{{appendix}}
+{% endif %}
+
+\end{document}

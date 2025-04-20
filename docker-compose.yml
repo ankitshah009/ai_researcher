@@ -11,6 +11,7 @@ services:
     environment:
       - PORT=5000
       - FLASK_DEBUG=0
+      - CORS_ORIGINS=http://localhost:3000
     volumes:
       - ./.env:/app/.env:ro
       - ./outputs:/app/outputs
@@ -27,16 +28,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - REACT_APP_API_URL=http://172.18.0.2:5000
+        - REACT_APP_API_URL=http://localhost:5001
     container_name: ai-research-frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
     environment:
-      - REACT_APP_API_URL=http://backend:5000
+      - REACT_APP_API_URL=http://localhost:5001
     restart: unless-stopped
-
-networks:
-  default:
-    name: ai-research-network

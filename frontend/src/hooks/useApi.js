@@ -8,7 +8,13 @@ const getApiUrl = () => {
     return process.env.REACT_APP_API_URL;
   }
   
-  // For local development with webpack proxy
+  // For local development using a direct URL instead of proxy
+  // This helps bypass potential proxy issues
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:5000';
+  }
+  
+  // Fallback for proxy
   return '';
 };
 
@@ -117,4 +123,4 @@ export const useApi = () => {
   };
 };
 
-export default useApi; 
+export default useApi;

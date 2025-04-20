@@ -27,7 +27,7 @@ def search_semantic_func(query: str, max_results: int = 10) -> List[Dict]:
 
 # Create the FunctionTool instance
 search_semantic = FunctionTool(
-    func=search_semantic_func,
+    func=search_semantic_func, # Reverted 'function' back to 'func'
     # name="search_semantic", 
     # description="Search Semantic Scholar for papers related to a query"
-) 
+)

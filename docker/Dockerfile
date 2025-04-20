@@ -1,34 +1,28 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
+# Set working directory
 WORKDIR /app
 
-# Install system dependencies including LaTeX
+# Install essential packages AND LaTeX for PDF generation
+# Using texlive-full for simplicity, consider smaller subsets for optimization
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     curl \
-    texlive-latex-base \
-    texlive-fonts-recommended \
-    texlive-fonts-extra \
-    texlive-latex-extra \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    texlive-full \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
-# Create directories for output and templates
-RUN mkdir -p /app/outputs /app/templates
+# Create output directory
+RUN mkdir -p /app/outputs
 
-# Copy application code
+# Copy source code
 COPY . .
 
-# Set environment variables
+# Set environment
 ENV PYTHONUNBUFFERED=1
 ENV PORT=5000
 
-# Expose port
 EXPOSE 5000
-
-# Set command
-CMD ["python", "api.py"] 
+CMD ["python", "api.py"]

@@ -27,7 +27,7 @@ def search_arxiv_func(query: str, max_results: int = 10) -> List[Dict]:
 
 # Create the FunctionTool instance
 search_arxiv = FunctionTool(
-    func=search_arxiv_func,
+    func=search_arxiv_func,  # Reverted 'function' back to 'func'
     # name="search_arxiv",  # Name/description might be inferred or set differently
     # description="Search arXiv for papers related to a query"
 )

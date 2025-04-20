@@ -10,7 +10,7 @@ Follow these rules:
 
 drafting_agent = Agent(
     name="drafting_agent",
-    model="gemini-2.5-pro",
+    model="gemini-2.5-flash-preview-04-17",
     description="Converts the outline and literature summaries into fully‑written prose, section by section.",
     instruction=_drafting_prompt,
 ) 

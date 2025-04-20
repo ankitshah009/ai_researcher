@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -62,12 +62,12 @@ const ResearchPage = () => {
   const [currentStage, setCurrentStage] = useState(0);
   const [outputFile, setOutputFile] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  
+
   const messagesEndRef = useRef(null);
   const { getJobStatus, getDownloadUrl, loading } = useApi();
-  
+
   // Fetch job status
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     if (!jobId) return;
     
     const result = await getJobStatus(jobId);
@@ -99,8 +99,8 @@ const ResearchPage = () => {
         setMessages(newMessages);
       }
     }
-  };
-  
+  }, [jobId, messages, currentStage, getJobStatus]);
+
   // Initialize and set up refresh
   useEffect(() => {
     fetchStatus();
@@ -112,15 +112,17 @@ const ResearchPage = () => {
     }
     
     return () => clearInterval(interval);
-  }, [jobId, autoRefresh]);
-  
+  }, [jobId, autoRefresh, fetchStatus]);
+
   // Scroll to bottom when messages update
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
-  
+
+  const pdfUrl = outputFile ? `/outputs/${outputFile}` : null;
+
   // Main render
   return (
     <div className="max-w-4xl mx-auto">
@@ -282,8 +284,40 @@ const ResearchPage = () => {
           )}
         </div>
       </motion.div>
+      
+      {/* PDF View using iframe (more reliable than react-pdf) */}
+      {pdfUrl && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card mt-8"
+        >
+          <h2 className="text-xl font-bold mb-4">Generated PDF</h2>
+          <div className="bg-slate-950 rounded-md border border-slate-800 p-2 overflow-hidden">
+            <iframe 
+              src={pdfUrl} 
+              title="Research Paper PDF"
+              className="w-full h-[600px]"
+              style={{ border: 'none' }}
+            />
+          </div>
+          <div className="mt-4 flex justify-end">
+            <a 
+              href={pdfUrl}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="button-primary bg-blue-700 hover:bg-blue-600 flex items-center"
+            >
+              <span className="mr-2">Open PDF in new tab</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
 
-export default ResearchPage; 
+export default ResearchPage;

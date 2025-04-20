@@ -24,6 +24,8 @@ wheels/
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
+frontend/node_modules/*
+
 # Virtual environments
 venv/
 .venv/

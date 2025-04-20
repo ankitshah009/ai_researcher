@@ -7,12 +7,18 @@ from agents.formatting_agent import formatting_agent
 
 coordinator_agent = Agent(
     name="research_coordinator",
-    model="gemini-2.0-flash",
+    model="gemini-2.5-flash-preview-04-17",
     description="Top‑level orchestrator that delegates stages of the research‑paper workflow.",
     instruction=(
         "On first user message (a research topic), delegate to outline_agent. "
         "Then iterate outline→literature→drafting (per section)→citation→formatting. "
-        "After PDF is produced, respond with the download link."
+        "When passing content to formatting_agent, provide the COMPLETE paper content as a structured dictionary "
+        "with keys for each section (title, abstract, introduction, related_work, methodology, experiments, "
+        "results, discussion, conclusion, references). "
+        "IMPORTANT: Make sure to explicitly ask formatting_agent to generate the PDF using paper_to_pdf and provide "
+        "a specific output filename. "
+        "After PDF is produced, respond with the output filename and tell the user they can download it "
+        "from the /outputs directory."
     ),
     sub_agents=[outline_agent, literature_agent, drafting_agent, citation_agent, formatting_agent],
-) 
+)
